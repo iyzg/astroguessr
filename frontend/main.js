@@ -36,7 +36,7 @@ const astrologySigns = [
 // Ground truth: Define correct answers (personId -> signId)
 const correctAnswers = {
   0: 'aries', // Update these with actual correct answers
-  1: 'taurus'
+  10: 'taurus'
 };
 
 // Create sign buttons

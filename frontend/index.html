@@ -61,6 +61,7 @@
         grid-template-rows: repeat(2, 1fr);
         gap: 8px;
         padding: 8px;
+        position: relative;
       }
 
       .sign-btn {
@@ -95,12 +96,9 @@
 
       #submit-container {
         position: absolute;
-        bottom: 20vh;
-        left: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         pointer-events: none;
         z-index: 100;
       }
@@ -230,12 +228,11 @@
         <canvas id="mask-canvas"></canvas>
       </div>
 
-      <div id="submit-container">
-        <button id="submit-btn">Submit</button>
-      </div>
-
       <div id="signs-container">
         <!-- Astrology signs will be added by JavaScript -->
+        <div id="submit-container">
+          <button id="submit-btn">Submit</button>
+        </div>
       </div>
     </div>
 
