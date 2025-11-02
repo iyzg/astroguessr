@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Name Guesser</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      #app-container {
+        width: 100%;
+        height: 100vh;
+        max-width: 600px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #video-container {
+        position: relative;
+        width: 100%;
+        height: 80vh;
+        background: #000;
+        overflow: hidden;
+      }
+
+      #video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      #mask-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: auto;
+      }
+
+      #signs-container {
+        height: 20vh;
+        background: #1a1a1a;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .sign-btn {
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        opacity: 0.3;
+        filter: grayscale(100%);
+        pointer-events: none;
+      }
+
+      .sign-btn.enabled {
+        opacity: 1;
+        filter: grayscale(0%);
+        pointer-events: auto;
+      }
+
+      .sign-btn.enabled:active {
+        transform: scale(0.95);
+      }
+
+      .sign-btn.used {
+        opacity: 0.3;
+        filter: grayscale(80%);
+        pointer-events: none;
+      }
+
+      #submit-container {
+        position: absolute;
+        bottom: 20vh;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      #submit-btn {
+        padding: 16px 48px;
+        font-size: 20px;
+        font-weight: 600;
+        background: white;
+        color: #1a1a1a;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        display: none;
+        pointer-events: auto;
+      }
+
+      #submit-btn:active {
+        transform: scale(0.95);
+      }
+
+      #result-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+
+      #result-modal.show {
+        display: flex;
+      }
+
+      #result-content {
+        background: #2a2a2a;
+        padding: 32px;
+        border-radius: 16px;
+        text-align: center;
+        color: white;
+      }
+
+      #result-content h2 {
+        font-size: 32px;
+        margin-bottom: 16px;
+      }
+
+      #result-content p {
+        font-size: 18px;
+        color: #999;
+      }
+
+      #back-to-playing {
+        margin-top: 24px;
+        padding: 12px 32px;
+        font-size: 16px;
+        background: white;
+        color: #1a1a1a;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      #landscape-warning {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #1a1a1a;
+        color: white;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 9999;
+      }
+
+      #landscape-warning svg {
+        width: 80px;
+        height: 80px;
+        opacity: 0.8;
+      }
+
+      #landscape-warning h2 {
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      #landscape-warning p {
+        font-size: 16px;
+        color: #999;
+      }
+
+      @media (max-width: 640px) and (orientation: landscape) {
+        #landscape-warning {
+          display: flex !important;
+        }
+      }
+    </style>
+    <script src="main.js" type="module"></script>
+  </head>
+  <body>
+    <div id="landscape-warning">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <rect x="3" y="6" width="18" height="12" rx="2" />
+        <path d="M9 3v3M15 3v3M9 18v3M15 18v3" />
+      </svg>
+      <h2>Please rotate your device</h2>
+      <p>This app must be used in vertical mode</p>
+    </div>
+
+    <div id="app-container">
+      <div id="video-container">
+        <video src="climbing.mp4" id="video" muted loop autoplay playsinline></video>
+        <canvas id="mask-canvas"></canvas>
+      </div>
+
+      <div id="submit-container">
+        <button id="submit-btn">Submit</button>
+      </div>
+
+      <div id="signs-container">
+        <!-- Astrology signs will be added by JavaScript -->
+      </div>
+    </div>
+
+    <div id="result-modal">
+      <div id="result-content">
+        <h2 id="result-score">0/2</h2>
+        <p id="result-message">Good try!</p>
+        <button id="back-to-playing">Back to playing</button>
+      </div>
+    </div>
+
+    <script>
+      const landscapeWarning = document.getElementById("landscape-warning");
+
+      // Check for landscape orientation on mobile
+      function checkOrientation() {
+        const isMobile = window.innerWidth <= 640;
+        const isLandscape = window.innerWidth > window.innerHeight;
+
+        if (isMobile && isLandscape) {
+          landscapeWarning.style.display = "flex";
+        } else {
+          landscapeWarning.style.display = "none";
+        }
+
+        // Trigger a custom event to notify canvas to resize
+        window.dispatchEvent(new Event("canvasresize"));
+      }
+
+      // Check on load and on orientation/resize changes
+      checkOrientation();
+      window.addEventListener("resize", checkOrientation);
+      window.addEventListener("orientationchange", () => {
+        setTimeout(checkOrientation, 100);
+      });
+    </script>
+  </body>
+</html>
