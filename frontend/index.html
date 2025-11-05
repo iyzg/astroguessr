@@ -138,6 +138,10 @@
         to { opacity: 1; }
       }
 
+      #help-modal.show #help-content {
+        animation: bounceIn 0.5s var(--transition-bounce);
+      }
+
       #help-content {
         background: #2a2a3e;
         padding: var(--spacing-xl);
@@ -147,7 +151,6 @@
         width: 500px;
         border: 2px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        animation: bounceIn 0.5s var(--transition-bounce);
       }
 
       @keyframes bounceIn {
@@ -359,6 +362,10 @@
         display: flex;
       }
 
+      #result-modal.show #result-content {
+        animation: bounceIn 0.5s var(--transition-bounce);
+      }
+
       #result-content {
         background: #2a2a3e;
         padding: var(--spacing-xl);
@@ -367,7 +374,6 @@
         max-width: 90%;
         border: 2px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        animation: bounceIn 0.5s var(--transition-bounce);
       }
 
       #result-content h2 {
