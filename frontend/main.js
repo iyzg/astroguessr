@@ -351,20 +351,12 @@ function handleCanvasClick(e) {
 // ============================================================================
 
 /**
- * Enable sign buttons for selection (except already used ones)
+ * Enable all sign buttons for selection
  */
 function enableSignButtons() {
-  const usedSigns = new Set(Object.values(state.personAssignments));
-
   document.querySelectorAll('.sign-btn').forEach(btn => {
-    const signId = btn.dataset.signId;
-    if (!usedSigns.has(signId)) {
-      btn.classList.add('enabled');
-      btn.classList.remove('used');
-    } else {
-      btn.classList.add('used');
-      btn.classList.remove('enabled');
-    }
+    btn.classList.add('enabled');
+    btn.classList.remove('used');
   });
 }
 
@@ -387,13 +379,6 @@ function handleSignClick(signId) {
 
   // Assign the sign to the person
   state.personAssignments[state.selectedPerson] = signId;
-
-  // Mark button as used
-  const button = document.querySelector(`[data-sign-id="${signId}"]`);
-  if (button) {
-    button.classList.add('used');
-    button.classList.remove('enabled');
-  }
 
   // Deselect person and resume video
   state.selectedPerson = null;
