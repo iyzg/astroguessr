@@ -15,21 +15,21 @@ const CONFIG = {
   }
 };
 
-// Zodiac signs with cohesive pastel color gradient (Aries → Pisces)
+// Zodiac signs with vibrant, fun color gradient (Aries → Pisces)
 // Colors follow a rainbow gradient: red → orange → yellow → green → cyan → blue → purple → pink
 const ASTROLOGY_SIGNS = [
-  { id: 'aries', name: 'Aries', color: '#FFB3B3' },       // Light coral
-  { id: 'taurus', name: 'Taurus', color: '#FFD9B3' },     // Peach
-  { id: 'gemini', name: 'Gemini', color: '#FFFFB3' },     // Light yellow
-  { id: 'cancer', name: 'Cancer', color: '#D9FFB3' },     // Light lime
-  { id: 'leo', name: 'Leo', color: '#B3FFB3' },           // Light green
-  { id: 'virgo', name: 'Virgo', color: '#B3FFD9' },       // Mint
-  { id: 'libra', name: 'Libra', color: '#B3FFFF' },       // Cyan
-  { id: 'scorpio', name: 'Scorpio', color: '#B3D9FF' },   // Light blue
-  { id: 'sagittarius', name: 'Sagittarius', color: '#B3B3FF' }, // Light purple
-  { id: 'capricorn', name: 'Capricorn', color: '#D9B3FF' },     // Lavender
-  { id: 'aquarius', name: 'Aquarius', color: '#FFB3FF' },       // Light magenta
-  { id: 'pisces', name: 'Pisces', color: '#FFB3D9' }            // Pink
+  { id: 'aries', name: 'Aries', color: '#FF6B9D' },       // Hot pink
+  { id: 'taurus', name: 'Taurus', color: '#FF8C42' },     // Orange
+  { id: 'gemini', name: 'Gemini', color: '#FFD93D' },     // Bright yellow
+  { id: 'cancer', name: 'Cancer', color: '#BCE784' },     // Light green
+  { id: 'leo', name: 'Leo', color: '#6BCF7F' },           // Green
+  { id: 'virgo', name: 'Virgo', color: '#4ECDC4' },       // Turquoise
+  { id: 'libra', name: 'Libra', color: '#6BC5FF' },       // Sky blue
+  { id: 'scorpio', name: 'Scorpio', color: '#5B9FED' },   // Blue
+  { id: 'sagittarius', name: 'Sagittarius', color: '#A06BFF' }, // Purple
+  { id: 'capricorn', name: 'Capricorn', color: '#C06BFF' },     // Violet
+  { id: 'aquarius', name: 'Aquarius', color: '#E06BFF' },       // Magenta
+  { id: 'pisces', name: 'Pisces', color: '#FF6BD5' }            // Pink magenta
 ];
 
 // Ground truth answers (personId → signId)
@@ -52,7 +52,10 @@ const elements = {
   resultScore: document.getElementById('result-score'),
   resultMessage: document.getElementById('result-message'),
   backToPlayingBtn: document.getElementById('back-to-playing'),
-  landscapeWarning: document.getElementById('landscape-warning')
+  landscapeWarning: document.getElementById('landscape-warning'),
+  helpButton: document.getElementById('help-button'),
+  helpModal: document.getElementById('help-modal'),
+  helpContent: document.getElementById('help-content')
 };
 
 // ============================================================================
@@ -489,8 +492,36 @@ function checkOrientation() {
 }
 
 // ============================================================================
+// HELP MODAL MANAGEMENT
+// ============================================================================
+
+/**
+ * Open the help modal
+ */
+function openHelpModal() {
+  elements.helpModal.classList.add('show');
+}
+
+/**
+ * Close the help modal
+ */
+function closeHelpModal() {
+  elements.helpModal.classList.remove('show');
+}
+
+// ============================================================================
 // EVENT LISTENERS
 // ============================================================================
+
+// Help modal
+elements.helpButton.addEventListener('click', openHelpModal);
+
+// Close help modal when clicking outside the content
+elements.helpModal.addEventListener('click', (e) => {
+  if (e.target === elements.helpModal) {
+    closeHelpModal();
+  }
+});
 
 // Canvas interaction
 elements.canvas.addEventListener('click', handleCanvasClick);

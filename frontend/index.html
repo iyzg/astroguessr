@@ -9,14 +9,15 @@
          CSS VARIABLES
          ================================================================ */
       :root {
-        /* Colors */
-        --color-background: #1a1a1a;
-        --color-background-dark: #000;
-        --color-surface: #2a2a2a;
+        /* Colors - More vibrant and fun! */
+        --color-background: #1a1a2e;
+        --color-background-dark: #0f0f1e;
+        --color-surface: #2a2a3e;
         --color-text-primary: #fff;
-        --color-text-secondary: #999;
+        --color-text-secondary: #a8a8c8;
+        --color-accent: #ff6b9d;
         --color-button-primary: #fff;
-        --color-modal-backdrop: rgba(0, 0, 0, 0.9);
+        --color-modal-backdrop: rgba(15, 15, 30, 0.95);
 
         /* Spacing */
         --spacing-xs: 8px;
@@ -26,14 +27,16 @@
         --spacing-xl: 32px;
         --spacing-2xl: 48px;
 
-        /* Border radius */
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
+        /* Border radius - More playful! */
+        --radius-sm: 12px;
+        --radius-md: 16px;
+        --radius-lg: 24px;
+        --radius-round: 50%;
 
         /* Transitions */
         --transition-fast: 0.2s ease;
-        --transition-medium: 0.3s ease;
+        --transition-medium: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
         /* Layout */
         --max-width: 600px;
@@ -53,7 +56,7 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: var(--color-background);
+        background: linear-gradient(135deg, #1a1a2e 0%, #2a1a3e 100%);
         color: var(--color-text-primary);
         display: flex;
         flex-direction: column;
@@ -72,6 +75,127 @@
         max-width: var(--max-width);
         display: flex;
         flex-direction: column;
+        position: relative;
+      }
+
+      /* ================================================================
+         HELP BUTTON
+         ================================================================ */
+      #help-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-round);
+        background: linear-gradient(135deg, #ff6b9d 0%, #c06bff 100%);
+        border: 3px solid var(--color-text-primary);
+        color: var(--color-text-primary);
+        font-size: 24px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+        transition: transform var(--transition-medium);
+        z-index: 150;
+      }
+
+      #help-button:hover {
+        transform: scale(1.1) rotate(15deg);
+        box-shadow: 0 6px 16px rgba(255, 107, 157, 0.6);
+      }
+
+      #help-button:active {
+        transform: scale(0.95) rotate(0deg);
+      }
+
+      /* ================================================================
+         HELP MODAL
+         ================================================================ */
+      #help-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--color-modal-backdrop);
+        align-items: center;
+        justify-content: center;
+        z-index: 250;
+        backdrop-filter: blur(8px);
+      }
+
+      #help-modal.show {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      #help-content {
+        background: linear-gradient(135deg, #2a2a3e 0%, #3a2a4e 100%);
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        text-align: left;
+        max-width: 90%;
+        width: 500px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: bounceIn 0.5s var(--transition-bounce);
+      }
+
+      @keyframes bounceIn {
+        0% {
+          opacity: 0;
+          transform: scale(0.3) translateY(-100px);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+        70% {
+          transform: scale(0.9);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      #help-content h2 {
+        font-size: 32px;
+        margin-bottom: var(--spacing-md);
+        background: linear-gradient(135deg, #ff6b9d 0%, #c06bff 50%, #6bc5ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      #help-content p {
+        font-size: 16px;
+        color: var(--color-text-secondary);
+        line-height: 1.6;
+        margin-bottom: var(--spacing-md);
+      }
+
+      #help-content ol {
+        margin: var(--spacing-md) 0;
+        padding-left: var(--spacing-lg);
+        color: var(--color-text-secondary);
+        line-height: 1.8;
+      }
+
+      #help-content ol li {
+        margin-bottom: var(--spacing-sm);
+      }
+
+      #help-content strong {
+        color: var(--color-text-primary);
       }
 
       /* ================================================================
@@ -83,6 +207,7 @@
         height: var(--video-height);
         background: var(--color-background-dark);
         overflow: hidden;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
       }
 
       #video {
@@ -105,60 +230,80 @@
          ================================================================ */
       #signs-container {
         height: var(--controls-height);
-        background: var(--color-background);
+        background: transparent;
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         grid-template-rows: repeat(2, 1fr);
-        gap: var(--spacing-xs);
-        padding: var(--spacing-xs);
+        gap: 10px;
+        padding: 12px;
         position: relative;
       }
 
       /* Sign Button Styles */
       .sign-btn {
         border: none;
-        border-radius: var(--radius-sm);
+        border-radius: var(--radius-md);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all var(--transition-fast);
-        opacity: 0.3;
-        filter: grayscale(100%);
+        opacity: 0.4;
+        filter: grayscale(100%) brightness(0.7);
         pointer-events: none;
         padding: var(--spacing-xs);
+        transform: rotate(0deg);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.1);
       }
 
       .sign-btn svg {
         width: 100%;
         height: 100%;
-        max-width: 40px;
-        max-height: 40px;
+        max-width: 42px;
+        max-height: 42px;
         object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
       }
 
       /* Sign Button States */
       .sign-btn.enabled {
         opacity: 1;
-        filter: grayscale(0%);
+        filter: grayscale(0%) brightness(1);
         pointer-events: auto;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.3);
       }
 
       .sign-btn.enabled:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(-4px) rotate(-3deg) scale(1.05);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.5);
       }
 
       .sign-btn.enabled:active {
-        transform: scale(0.95);
+        transform: scale(0.9) rotate(0deg);
       }
 
       .sign-btn.used {
         opacity: 0.3;
-        filter: grayscale(80%);
+        filter: grayscale(90%);
         pointer-events: none;
       }
+
+      /* Add playful rotation to each button */
+      .sign-btn:nth-child(1) { transform: rotate(-1deg); }
+      .sign-btn:nth-child(2) { transform: rotate(1deg); }
+      .sign-btn:nth-child(3) { transform: rotate(-1.5deg); }
+      .sign-btn:nth-child(4) { transform: rotate(0.5deg); }
+      .sign-btn:nth-child(5) { transform: rotate(-0.5deg); }
+      .sign-btn:nth-child(6) { transform: rotate(1.5deg); }
+      .sign-btn:nth-child(7) { transform: rotate(1deg); }
+      .sign-btn:nth-child(8) { transform: rotate(-1deg); }
+      .sign-btn:nth-child(9) { transform: rotate(0.5deg); }
+      .sign-btn:nth-child(10) { transform: rotate(-1.5deg); }
+      .sign-btn:nth-child(11) { transform: rotate(1deg); }
+      .sign-btn:nth-child(12) { transform: rotate(-0.5deg); }
 
       /* ================================================================
          SUBMIT BUTTON
@@ -175,21 +320,23 @@
       #submit-btn {
         padding: var(--spacing-md) var(--spacing-2xl);
         font-size: 20px;
-        font-weight: 600;
-        background: var(--color-button-primary);
-        color: var(--color-background);
-        border: none;
-        border-radius: var(--radius-md);
+        font-weight: 700;
+        background: linear-gradient(135deg, #ff6b9d 0%, #c06bff 100%);
+        color: var(--color-text-primary);
+        border: 3px solid var(--color-text-primary);
+        border-radius: var(--radius-lg);
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 6px 24px rgba(255, 107, 157, 0.5);
         display: none;
         pointer-events: auto;
-        transition: transform var(--transition-fast);
+        transition: transform var(--transition-medium);
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
 
       #submit-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 10px 32px rgba(255, 107, 157, 0.6);
       }
 
       #submit-btn:active {
@@ -210,6 +357,7 @@
         align-items: center;
         justify-content: center;
         z-index: 200;
+        backdrop-filter: blur(8px);
       }
 
       #result-modal.show {
@@ -217,50 +365,46 @@
       }
 
       #result-content {
-        background: var(--color-surface);
+        background: linear-gradient(135deg, #2a2a3e 0%, #3a2a4e 100%);
         padding: var(--spacing-xl);
         border-radius: var(--radius-lg);
         text-align: center;
         max-width: 90%;
-        animation: slideUp 0.3s ease;
-      }
-
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: bounceIn 0.5s var(--transition-bounce);
       }
 
       #result-content h2 {
-        font-size: 32px;
+        font-size: 48px;
         margin-bottom: var(--spacing-md);
+        background: linear-gradient(135deg, #ff6b9d 0%, #c06bff 50%, #6bc5ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
       #result-content p {
-        font-size: 18px;
+        font-size: 20px;
         color: var(--color-text-secondary);
         margin-bottom: var(--spacing-lg);
       }
 
       #back-to-playing {
         margin-top: var(--spacing-lg);
-        padding: var(--spacing-sm) var(--spacing-xl);
-        font-size: 16px;
-        background: var(--color-button-primary);
-        color: var(--color-background);
-        border: none;
-        border-radius: var(--radius-sm);
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-size: 18px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #6bc5ff 0%, #c06bff 100%);
+        color: var(--color-text-primary);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--radius-md);
         cursor: pointer;
-        transition: transform var(--transition-fast);
+        transition: transform var(--transition-medium);
       }
 
       #back-to-playing:hover {
-        transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.05);
       }
 
       #back-to-playing:active {
@@ -316,19 +460,50 @@
       /* Adjust button sizing for smaller screens */
       @media (max-width: 400px) {
         .sign-btn svg {
-          max-width: 30px;
-          max-height: 30px;
+          max-width: 32px;
+          max-height: 32px;
         }
 
         #submit-btn {
           padding: var(--spacing-sm) var(--spacing-lg);
           font-size: 18px;
         }
+
+        #help-button {
+          width: 40px;
+          height: 40px;
+          top: 12px;
+          right: 12px;
+          font-size: 20px;
+        }
       }
     </style>
     <script src="main.js" type="module"></script>
   </head>
   <body>
+    <!-- Help Button -->
+    <button id="help-button" aria-label="Help">?</button>
+
+    <!-- Help Modal -->
+    <div id="help-modal">
+      <div id="help-content">
+        <h2>🌟 How to Play AstroGuessr</h2>
+        <p>Can you guess the zodiac signs of the people in the video?</p>
+
+        <ol>
+          <li><strong>Watch</strong> the video and observe the people climbing</li>
+          <li><strong>Click</strong> on a person in the video to select them</li>
+          <li><strong>Choose</strong> a zodiac sign from the colorful buttons below</li>
+          <li><strong>Repeat</strong> for all people in the video</li>
+          <li><strong>Submit</strong> your guesses and see your score!</li>
+        </ol>
+
+        <p style="margin-top: 24px; font-size: 14px; opacity: 0.7;">
+          Click anywhere outside this box to close
+        </p>
+      </div>
+    </div>
+
     <!-- Landscape Orientation Warning -->
     <div id="landscape-warning">
       <svg
