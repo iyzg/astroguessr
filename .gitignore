@@ -9,3 +9,9 @@ wheels/
 # Virtual environments
 .venv
 .DS_Store
+
+# Masks
+assets/
+frontend/masks/
+frontend/old_masks/
+masks/
