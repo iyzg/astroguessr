@@ -16,20 +16,19 @@ const CONFIG = {
 };
 
 // Zodiac signs with vibrant, fun color gradient (Aries → Pisces)
-// Colors follow a rainbow gradient: red → orange → yellow → green → cyan → blue → purple → pink
 const ASTROLOGY_SIGNS = [
-  { id: 'aries', name: 'Aries', color: '#FF6B9D' },       // Hot pink
-  { id: 'taurus', name: 'Taurus', color: '#FF8C42' },     // Orange
-  { id: 'gemini', name: 'Gemini', color: '#FFD93D' },     // Bright yellow
-  { id: 'cancer', name: 'Cancer', color: '#BCE784' },     // Light green
-  { id: 'leo', name: 'Leo', color: '#6BCF7F' },           // Green
-  { id: 'virgo', name: 'Virgo', color: '#4ECDC4' },       // Turquoise
-  { id: 'libra', name: 'Libra', color: '#6BC5FF' },       // Sky blue
-  { id: 'scorpio', name: 'Scorpio', color: '#5B9FED' },   // Blue
-  { id: 'sagittarius', name: 'Sagittarius', color: '#A06BFF' }, // Purple
-  { id: 'capricorn', name: 'Capricorn', color: '#C06BFF' },     // Violet
-  { id: 'aquarius', name: 'Aquarius', color: '#E06BFF' },       // Magenta
-  { id: 'pisces', name: 'Pisces', color: '#FF6BD5' }            // Pink magenta
+  { id: 'aries', name: 'Aries', color: '#FF6B9D' },
+  { id: 'taurus', name: 'Taurus', color: '#FF8C42' },
+  { id: 'gemini', name: 'Gemini', color: '#FFD93D' },
+  { id: 'cancer', name: 'Cancer', color: '#BCE784' },
+  { id: 'leo', name: 'Leo', color: '#6BCF7F' },
+  { id: 'virgo', name: 'Virgo', color: '#4ECDC4' },
+  { id: 'libra', name: 'Libra', color: '#6BC5FF' },
+  { id: 'scorpio', name: 'Scorpio', color: '#5B9FED' },
+  { id: 'sagittarius', name: 'Sagittarius', color: '#A06BFF' },
+  { id: 'capricorn', name: 'Capricorn', color: '#C06BFF' },
+  { id: 'aquarius', name: 'Aquarius', color: '#E06BFF' },
+  { id: 'pisces', name: 'Pisces', color: '#FF6BD5' }
 ];
 
 // Ground truth answers (personId → signId)
@@ -54,8 +53,7 @@ const elements = {
   backToPlayingBtn: document.getElementById('back-to-playing'),
   landscapeWarning: document.getElementById('landscape-warning'),
   helpButton: document.getElementById('help-button'),
-  helpModal: document.getElementById('help-modal'),
-  helpContent: document.getElementById('help-content')
+  helpModal: document.getElementById('help-modal')
 };
 
 // ============================================================================
@@ -63,43 +61,30 @@ const elements = {
 // ============================================================================
 
 const state = {
-  maskImages: {},           // {personId: {frameIdx: Image}}
-  svgCache: {},             // {signId: svgContent}
+  maskImages: {},
+  svgCache: {},
   loadingComplete: false,
   currentFrame: -1,
-  selectedPerson: null,     // Currently selected person for assignment
-  personAssignments: {}     // {personId: signId}
+  selectedPerson: null,
+  personAssignments: {},
+  isSubmitting: false  // Prevent double submission
 };
 
 // ============================================================================
-// SVG LOADING & INITIALIZATION
+// ASSET LOADING
 // ============================================================================
 
-/**
- * Preload all SVG icons for zodiac signs
- */
 async function preloadSVGs() {
-  const promises = ASTROLOGY_SIGNS.map(sign => {
-    return fetch(`assets/svg/${sign.id}.svg`)
+  const promises = ASTROLOGY_SIGNS.map(sign =>
+    fetch(`assets/svg/${sign.id}.svg`)
       .then(response => response.text())
-      .then(svgContent => {
-        state.svgCache[sign.id] = svgContent;
-      })
-      .catch(error => {
-        console.warn(`Failed to load SVG for ${sign.id}:`, error);
-        state.svgCache[sign.id] = null;
-      });
-  });
-
+      .then(svgContent => { state.svgCache[sign.id] = svgContent; })
+      .catch(() => { state.svgCache[sign.id] = null; })
+  );
   await Promise.all(promises);
-  console.log('All SVGs loaded!');
 }
 
-/**
- * Preload all mask images for all people across all frames
- */
 async function preloadMasks() {
-  console.log('Loading masks...');
   const promises = [];
 
   for (let personId = 0; personId < CONFIG.GAME.NUM_PEOPLE; personId++) {
@@ -113,22 +98,19 @@ async function preloadMasks() {
           state.maskImages[personId][frameIdx] = img;
           resolve();
         };
-        img.onerror = () => {
-          console.warn(`Mask not found: frame ${frameIdx}, person ${personId}`);
-          resolve();
-        };
+        img.onerror = resolve;
       }));
     }
   }
 
   await Promise.all(promises);
   state.loadingComplete = true;
-  console.log('All masks loaded!');
 }
 
-/**
- * Initialize the sign selection buttons with SVG icons
- */
+// ============================================================================
+// UI INITIALIZATION
+// ============================================================================
+
 function initializeSignButtons() {
   ASTROLOGY_SIGNS.forEach(sign => {
     const btn = document.createElement('button');
@@ -137,69 +119,52 @@ function initializeSignButtons() {
     btn.title = sign.name;
     btn.style.backgroundColor = sign.color;
 
-    // Add SVG icon if available
     if (state.svgCache[sign.id]) {
       btn.innerHTML = state.svgCache[sign.id];
     } else {
-      // Fallback to text if SVG failed to load
       btn.textContent = sign.name.substring(0, 2);
     }
 
-    btn.addEventListener('click', () => handleSignClick(sign.id));
+    btn.addEventListener('click', () => handleSignClick(sign.id), { once: false });
     elements.signsContainer.appendChild(btn);
   });
 }
 
 // ============================================================================
-// CANVAS & VIDEO MANAGEMENT
+// CANVAS RENDERING
 // ============================================================================
 
-/**
- * Resize canvas to match video container with proper aspect ratio handling
- * Accounts for object-fit: cover behavior
- */
 function resizeCanvas() {
   if (!elements.video.videoWidth || !elements.video.videoHeight) return;
 
   const videoAspect = elements.video.videoWidth / elements.video.videoHeight;
   const containerAspect = elements.video.offsetWidth / elements.video.offsetHeight;
 
-  let scale, visibleWidth, visibleHeight, cropX, cropY;
+  let visibleWidth, visibleHeight, cropX, cropY;
 
   if (containerAspect > videoAspect) {
-    // Container is wider - video width fills container, height is cropped
-    scale = elements.video.offsetWidth / elements.video.videoWidth;
+    const scale = elements.video.offsetWidth / elements.video.videoWidth;
     visibleWidth = elements.video.videoWidth;
     visibleHeight = elements.video.offsetHeight / scale;
     cropX = 0;
     cropY = (elements.video.videoHeight - visibleHeight) / 2;
   } else {
-    // Container is taller - video height fills container, width is cropped
-    scale = elements.video.offsetHeight / elements.video.videoHeight;
+    const scale = elements.video.offsetHeight / elements.video.videoHeight;
     visibleHeight = elements.video.videoHeight;
     visibleWidth = elements.video.offsetWidth / scale;
     cropX = (elements.video.videoWidth - visibleWidth) / 2;
     cropY = 0;
   }
 
-  // Set canvas dimensions
   elements.canvas.width = visibleWidth;
   elements.canvas.height = visibleHeight;
   elements.canvas.style.width = `${elements.video.offsetWidth}px`;
   elements.canvas.style.height = `${elements.video.offsetHeight}px`;
-  elements.canvas.style.left = '0px';
-  elements.canvas.style.top = '0px';
 
-  // Store crop info for mask drawing
   elements.canvas.dataset.cropX = cropX;
   elements.canvas.dataset.cropY = cropY;
-  elements.canvas.dataset.scale = scale;
 }
 
-/**
- * Draw a colored mask on the canvas
- * Uses composite operations to colorize the mask
- */
 function drawColoredMask(maskImage, color) {
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = elements.canvas.width;
@@ -209,57 +174,42 @@ function drawColoredMask(maskImage, color) {
   const cropX = parseFloat(elements.canvas.dataset.cropX) || 0;
   const cropY = parseFloat(elements.canvas.dataset.cropY) || 0;
 
-  // Draw only the visible portion of the mask
   tempCtx.drawImage(
     maskImage,
     cropX, cropY, elements.canvas.width, elements.canvas.height,
     0, 0, elements.canvas.width, elements.canvas.height
   );
 
-  // Apply color using source-in composite operation
   tempCtx.globalCompositeOperation = 'source-in';
   tempCtx.fillStyle = color;
   tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-  // Draw the colored mask onto the main canvas
   elements.ctx.drawImage(tempCanvas, 0, 0);
 }
 
-/**
- * Redraw all masks on the canvas
- * Shows assigned people with their zodiac colors and selected person with white overlay
- */
 function redrawMask() {
   elements.ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
 
   if (!state.loadingComplete || state.currentFrame < 0) return;
 
-  // Draw all assigned people with their zodiac colors
+  // Draw assigned people with their colors
   for (let personId = 0; personId < CONFIG.GAME.NUM_PEOPLE; personId++) {
     const signId = state.personAssignments[personId];
     const mask = state.maskImages[personId]?.[state.currentFrame];
 
     if (signId && mask) {
       const sign = ASTROLOGY_SIGNS.find(s => s.id === signId);
-      if (sign) {
-        drawColoredMask(mask, sign.color);
-      }
+      if (sign) drawColoredMask(mask, sign.color);
     }
   }
 
   // Draw selected person with white overlay
   if (state.selectedPerson !== null) {
     const mask = state.maskImages[state.selectedPerson]?.[state.currentFrame];
-    if (mask) {
-      drawColoredMask(mask, CONFIG.COLORS.SELECTION_OVERLAY);
-    }
+    if (mask) drawColoredMask(mask, CONFIG.COLORS.SELECTION_OVERLAY);
   }
 }
 
-/**
- * Update mask display on each animation frame
- * Synchronizes mask rendering with video playback
- */
 function updateMask() {
   if (state.loadingComplete) {
     const frameIdx = Math.floor(elements.video.currentTime * CONFIG.VIDEO.FPS);
@@ -275,13 +225,9 @@ function updateMask() {
 }
 
 // ============================================================================
-// CLICK DETECTION & INTERACTION
+// INTERACTION HANDLERS
 // ============================================================================
 
-/**
- * Handle clicks on the canvas to select people
- * Uses mask alpha channel for precise hit detection
- */
 function handleCanvasClick(e) {
   if (!state.loadingComplete) return;
 
@@ -296,12 +242,11 @@ function handleCanvasClick(e) {
 
   let clickedPerson = null;
 
-  // Check which person was clicked (check in reverse order for proper layering)
+  // Check which person was clicked (reverse order for layering)
   for (let personId = CONFIG.GAME.NUM_PEOPLE - 1; personId >= 0; personId--) {
     const mask = state.maskImages[personId]?.[state.currentFrame];
     if (!mask) continue;
 
-    // Create temporary canvas to check pixel at click position
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = elements.canvas.width;
     tempCanvas.height = elements.canvas.height;
@@ -314,45 +259,43 @@ function handleCanvasClick(e) {
     );
 
     const imageData = tempCtx.getImageData(x, y, 1, 1);
-    const alpha = imageData.data[3];
-
-    if (alpha > 0) {
+    if (imageData.data[3] > 0) {
       clickedPerson = personId;
       break;
     }
   }
 
   if (clickedPerson !== null) {
-    // Person clicked - select them and pause video
     state.selectedPerson = clickedPerson;
-    console.log('Selected person:', state.selectedPerson);
-
     elements.video.pause();
     elements.submitBtn.style.display = 'none';
     enableSignButtons();
     redrawMask();
   } else {
-    // Background clicked - deselect and resume video
     state.selectedPerson = null;
-    console.log('Deselected');
-
-    if (elements.video.paused) {
-      elements.video.play();
-    }
-
+    if (elements.video.paused) elements.video.play();
     disableSignButtons();
-    checkAllAssigned();
+    updateSubmitButtonVisibility();
     redrawMask();
   }
 }
 
+function handleSignClick(signId) {
+  if (state.selectedPerson === null) return;
+
+  state.personAssignments[state.selectedPerson] = signId;
+  state.selectedPerson = null;
+
+  disableSignButtons();
+  elements.video.play();
+  updateSubmitButtonVisibility();
+  redrawMask();
+}
+
 // ============================================================================
-// SIGN BUTTON MANAGEMENT
+// BUTTON STATE MANAGEMENT
 // ============================================================================
 
-/**
- * Enable all sign buttons for selection
- */
 function enableSignButtons() {
   document.querySelectorAll('.sign-btn').forEach(btn => {
     btn.classList.add('enabled');
@@ -360,68 +303,35 @@ function enableSignButtons() {
   });
 }
 
-/**
- * Disable all sign buttons
- */
 function disableSignButtons() {
   document.querySelectorAll('.sign-btn').forEach(btn => {
     btn.classList.remove('enabled');
   });
 }
 
-/**
- * Handle sign button clicks - assign sign to selected person
- */
-function handleSignClick(signId) {
-  if (state.selectedPerson === null) return;
-
-  console.log(`Assigned ${signId} to person ${state.selectedPerson}`);
-
-  // Assign the sign to the person
-  state.personAssignments[state.selectedPerson] = signId;
-
-  // Deselect person and resume video
-  state.selectedPerson = null;
-  disableSignButtons();
-  elements.video.play();
-  checkAllAssigned();
-  redrawMask();
-}
-
-// ============================================================================
-// GAME FLOW & SCORING
-// ============================================================================
-
-/**
- * Check if all people have been assigned signs
- * Show submit button if complete
- */
-function checkAllAssigned() {
+function updateSubmitButtonVisibility() {
   const allAssigned = Object.keys(state.personAssignments).length === CONFIG.GAME.NUM_PEOPLE;
+  const shouldShow = allAssigned && !elements.video.paused && state.selectedPerson === null;
 
-  if (allAssigned && !elements.video.paused && state.selectedPerson === null) {
-    elements.submitBtn.style.display = 'block';
-  } else {
-    elements.submitBtn.style.display = 'none';
-  }
+  elements.submitBtn.style.display = shouldShow ? 'block' : 'none';
 }
 
-/**
- * Calculate score and display results
- */
+// ============================================================================
+// GAME FLOW
+// ============================================================================
+
 function calculateScore() {
+  // Prevent double submission
+  if (state.isSubmitting) return;
+  state.isSubmitting = true;
+
   let correctCount = 0;
-
   for (let personId = 0; personId < CONFIG.GAME.NUM_PEOPLE; personId++) {
-    const assigned = state.personAssignments[personId];
-    const correct = CORRECT_ANSWERS[personId];
-
-    if (assigned === correct) {
+    if (state.personAssignments[personId] === CORRECT_ANSWERS[personId]) {
       correctCount++;
     }
   }
 
-  // Display result
   elements.resultScore.textContent = `${correctCount}/${CONFIG.GAME.NUM_PEOPLE}`;
 
   if (correctCount === CONFIG.GAME.NUM_PEOPLE) {
@@ -432,21 +342,17 @@ function calculateScore() {
     elements.resultMessage.textContent = "Good try! The stars weren't in your favor.";
   }
 
-  // Show result modal
   elements.video.pause();
-  elements.resultModal.classList.add('show');
   elements.submitBtn.style.display = 'none';
+  elements.resultModal.classList.add('show');
 }
 
-/**
- * Reset game state and return to playing
- */
 function resetGame() {
   elements.resultModal.classList.remove('show');
   state.personAssignments = {};
   state.selectedPerson = null;
+  state.isSubmitting = false;
 
-  // Reset all sign buttons
   document.querySelectorAll('.sign-btn').forEach(btn => {
     btn.classList.remove('used', 'enabled');
   });
@@ -456,94 +362,69 @@ function resetGame() {
 }
 
 // ============================================================================
-// ORIENTATION CHECK
+// MODALS
 // ============================================================================
 
-/**
- * Check device orientation and display warning on mobile landscape
- */
-function checkOrientation() {
-  const isMobile = window.innerWidth <= 640;
-  const isLandscape = window.innerWidth > window.innerHeight;
-
-  if (isMobile && isLandscape) {
-    elements.landscapeWarning.style.display = 'flex';
-  } else {
-    elements.landscapeWarning.style.display = 'none';
-  }
-
-  // Trigger canvas resize
-  window.dispatchEvent(new Event('canvasresize'));
-}
-
-// ============================================================================
-// HELP MODAL MANAGEMENT
-// ============================================================================
-
-/**
- * Open the help modal
- */
 function openHelpModal() {
   elements.helpModal.classList.add('show');
 }
 
-/**
- * Close the help modal
- */
 function closeHelpModal() {
   elements.helpModal.classList.remove('show');
+}
+
+// ============================================================================
+// ORIENTATION
+// ============================================================================
+
+function checkOrientation() {
+  const isMobile = window.innerWidth <= 640;
+  const isLandscape = window.innerWidth > window.innerHeight;
+  elements.landscapeWarning.style.display = (isMobile && isLandscape) ? 'flex' : 'none';
 }
 
 // ============================================================================
 // EVENT LISTENERS
 // ============================================================================
 
-// Help modal
-elements.helpButton.addEventListener('click', openHelpModal);
+function setupEventListeners() {
+  // Help modal
+  elements.helpButton.addEventListener('click', openHelpModal);
+  elements.helpModal.addEventListener('click', (e) => {
+    if (e.target === elements.helpModal) closeHelpModal();
+  });
 
-// Close help modal when clicking outside the content
-elements.helpModal.addEventListener('click', (e) => {
-  if (e.target === elements.helpModal) {
-    closeHelpModal();
-  }
-});
+  // Canvas interaction
+  elements.canvas.addEventListener('click', handleCanvasClick);
 
-// Canvas interaction
-elements.canvas.addEventListener('click', handleCanvasClick);
-
-// Video events
-elements.video.addEventListener('loadedmetadata', () => {
-  setTimeout(() => {
+  // Video events
+  elements.video.addEventListener('loadedmetadata', () => {
     resizeCanvas();
     updateMask();
-  }, 0);
-});
+  });
 
-elements.video.addEventListener('play', checkAllAssigned);
-elements.video.addEventListener('pause', () => {
-  elements.submitBtn.style.display = 'none';
-});
+  elements.video.addEventListener('play', updateSubmitButtonVisibility);
+  elements.video.addEventListener('pause', () => {
+    elements.submitBtn.style.display = 'none';
+  });
 
-// Submit and reset
-elements.submitBtn.addEventListener('click', calculateScore);
-elements.backToPlayingBtn.addEventListener('click', resetGame);
+  // Submit and reset
+  elements.submitBtn.addEventListener('click', calculateScore);
+  elements.backToPlayingBtn.addEventListener('click', resetGame);
 
-// Resize and orientation
-window.addEventListener('resize', () => {
-  resizeCanvas();
-  checkOrientation();
-});
-
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
+  // Window events
+  window.addEventListener('resize', () => {
     resizeCanvas();
     checkOrientation();
-  }, 100);
-});
+  });
 
-window.addEventListener('canvasresize', () => {
-  setTimeout(resizeCanvas, 150);
-});
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      resizeCanvas();
+      checkOrientation();
+    }, 100);
+  });
+}
 
 // ============================================================================
 // INITIALIZATION
@@ -552,6 +433,7 @@ window.addEventListener('canvasresize', () => {
 (async function initialize() {
   await preloadSVGs();
   initializeSignButtons();
+  setupEventListeners();
   await preloadMasks();
   checkOrientation();
 })();
