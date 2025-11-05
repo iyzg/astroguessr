@@ -3,8 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Name Guesser</title>
+    <title>AstroGuessr</title>
     <style>
+      /* ================================================================
+         CSS VARIABLES
+         ================================================================ */
+      :root {
+        /* Colors */
+        --color-background: #1a1a1a;
+        --color-background-dark: #000;
+        --color-surface: #2a2a2a;
+        --color-text-primary: #fff;
+        --color-text-secondary: #999;
+        --color-button-primary: #fff;
+        --color-modal-backdrop: rgba(0, 0, 0, 0.9);
+
+        /* Spacing */
+        --spacing-xs: 8px;
+        --spacing-sm: 12px;
+        --spacing-md: 16px;
+        --spacing-lg: 24px;
+        --spacing-xl: 32px;
+        --spacing-2xl: 48px;
+
+        /* Border radius */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+
+        /* Transitions */
+        --transition-fast: 0.2s ease;
+        --transition-medium: 0.3s ease;
+
+        /* Layout */
+        --max-width: 600px;
+        --video-height: 80vh;
+        --controls-height: 20vh;
+      }
+
+      /* ================================================================
+         RESET & BASE STYLES
+         ================================================================ */
       * {
         margin: 0;
         padding: 0;
@@ -14,7 +53,8 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: #1a1a1a;
+        background: var(--color-background);
+        color: var(--color-text-primary);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -23,19 +63,25 @@
         overflow: hidden;
       }
 
+      /* ================================================================
+         MAIN LAYOUT
+         ================================================================ */
       #app-container {
         width: 100%;
         height: 100vh;
-        max-width: 600px;
+        max-width: var(--max-width);
         display: flex;
         flex-direction: column;
       }
 
+      /* ================================================================
+         VIDEO CONTAINER
+         ================================================================ */
       #video-container {
         position: relative;
         width: 100%;
-        height: 80vh;
-        background: #000;
+        height: var(--video-height);
+        background: var(--color-background-dark);
         overflow: hidden;
       }
 
@@ -51,37 +97,57 @@
         top: 0;
         left: 0;
         pointer-events: auto;
+        cursor: pointer;
       }
 
+      /* ================================================================
+         ZODIAC SIGN CONTROLS
+         ================================================================ */
       #signs-container {
-        height: 20vh;
-        background: #1a1a1a;
+        height: var(--controls-height);
+        background: var(--color-background);
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         grid-template-rows: repeat(2, 1fr);
-        gap: 8px;
-        padding: 8px;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-xs);
         position: relative;
       }
 
+      /* Sign Button Styles */
       .sign-btn {
         border: none;
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         cursor: pointer;
-        font-size: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
+        transition: all var(--transition-fast);
         opacity: 0.3;
         filter: grayscale(100%);
         pointer-events: none;
+        padding: var(--spacing-xs);
       }
 
+      .sign-btn svg {
+        width: 100%;
+        height: 100%;
+        max-width: 40px;
+        max-height: 40px;
+        object-fit: contain;
+      }
+
+      /* Sign Button States */
       .sign-btn.enabled {
         opacity: 1;
         filter: grayscale(0%);
         pointer-events: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .sign-btn.enabled:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
 
       .sign-btn.enabled:active {
@@ -94,6 +160,9 @@
         pointer-events: none;
       }
 
+      /* ================================================================
+         SUBMIT BUTTON
+         ================================================================ */
       #submit-container {
         position: absolute;
         top: 50%;
@@ -104,23 +173,32 @@
       }
 
       #submit-btn {
-        padding: 16px 48px;
+        padding: var(--spacing-md) var(--spacing-2xl);
         font-size: 20px;
         font-weight: 600;
-        background: white;
-        color: #1a1a1a;
+        background: var(--color-button-primary);
+        color: var(--color-background);
         border: none;
-        border-radius: 12px;
+        border-radius: var(--radius-md);
         cursor: pointer;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         display: none;
         pointer-events: auto;
+        transition: transform var(--transition-fast);
+      }
+
+      #submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
       }
 
       #submit-btn:active {
         transform: scale(0.95);
       }
 
+      /* ================================================================
+         RESULT MODAL
+         ================================================================ */
       #result-modal {
         display: none;
         position: fixed;
@@ -128,7 +206,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.9);
+        background: var(--color-modal-backdrop);
         align-items: center;
         justify-content: center;
         z-index: 200;
@@ -139,34 +217,59 @@
       }
 
       #result-content {
-        background: #2a2a2a;
-        padding: 32px;
-        border-radius: 16px;
+        background: var(--color-surface);
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
         text-align: center;
-        color: white;
+        max-width: 90%;
+        animation: slideUp 0.3s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       #result-content h2 {
         font-size: 32px;
-        margin-bottom: 16px;
+        margin-bottom: var(--spacing-md);
       }
 
       #result-content p {
         font-size: 18px;
-        color: #999;
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-lg);
       }
 
       #back-to-playing {
-        margin-top: 24px;
-        padding: 12px 32px;
+        margin-top: var(--spacing-lg);
+        padding: var(--spacing-sm) var(--spacing-xl);
         font-size: 16px;
-        background: white;
-        color: #1a1a1a;
+        background: var(--color-button-primary);
+        color: var(--color-background);
         border: none;
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         cursor: pointer;
+        transition: transform var(--transition-fast);
       }
 
+      #back-to-playing:hover {
+        transform: translateY(-2px);
+      }
+
+      #back-to-playing:active {
+        transform: scale(0.95);
+      }
+
+      /* ================================================================
+         LANDSCAPE WARNING
+         ================================================================ */
       #landscape-warning {
         display: none;
         position: fixed;
@@ -174,13 +277,15 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: #1a1a1a;
-        color: white;
+        background: var(--color-background);
+        color: var(--color-text-primary);
         align-items: center;
         justify-content: center;
         flex-direction: column;
         gap: 20px;
         z-index: 9999;
+        padding: var(--spacing-xl);
+        text-align: center;
       }
 
       #landscape-warning svg {
@@ -196,18 +301,35 @@
 
       #landscape-warning p {
         font-size: 16px;
-        color: #999;
+        color: var(--color-text-secondary);
       }
 
+      /* ================================================================
+         RESPONSIVE DESIGN
+         ================================================================ */
       @media (max-width: 640px) and (orientation: landscape) {
         #landscape-warning {
           display: flex !important;
+        }
+      }
+
+      /* Adjust button sizing for smaller screens */
+      @media (max-width: 400px) {
+        .sign-btn svg {
+          max-width: 30px;
+          max-height: 30px;
+        }
+
+        #submit-btn {
+          padding: var(--spacing-sm) var(--spacing-lg);
+          font-size: 18px;
         }
       }
     </style>
     <script src="main.js" type="module"></script>
   </head>
   <body>
+    <!-- Landscape Orientation Warning -->
     <div id="landscape-warning">
       <svg
         viewBox="0 0 24 24"
@@ -222,20 +344,24 @@
       <p>This app must be used in vertical mode</p>
     </div>
 
+    <!-- Main Application Container -->
     <div id="app-container">
+      <!-- Video Player with Canvas Overlay -->
       <div id="video-container">
         <video src="climbing.mp4" id="video" muted loop autoplay playsinline></video>
         <canvas id="mask-canvas"></canvas>
       </div>
 
+      <!-- Zodiac Sign Selection Controls -->
       <div id="signs-container">
-        <!-- Astrology signs will be added by JavaScript -->
+        <!-- Signs will be dynamically added by JavaScript -->
         <div id="submit-container">
           <button id="submit-btn">Submit</button>
         </div>
       </div>
     </div>
 
+    <!-- Result Modal -->
     <div id="result-modal">
       <div id="result-content">
         <h2 id="result-score">0/2</h2>
@@ -243,31 +369,5 @@
         <button id="back-to-playing">Back to playing</button>
       </div>
     </div>
-
-    <script>
-      const landscapeWarning = document.getElementById("landscape-warning");
-
-      // Check for landscape orientation on mobile
-      function checkOrientation() {
-        const isMobile = window.innerWidth <= 640;
-        const isLandscape = window.innerWidth > window.innerHeight;
-
-        if (isMobile && isLandscape) {
-          landscapeWarning.style.display = "flex";
-        } else {
-          landscapeWarning.style.display = "none";
-        }
-
-        // Trigger a custom event to notify canvas to resize
-        window.dispatchEvent(new Event("canvasresize"));
-      }
-
-      // Check on load and on orientation/resize changes
-      checkOrientation();
-      window.addEventListener("resize", checkOrientation);
-      window.addEventListener("orientationchange", () => {
-        setTimeout(checkOrientation, 100);
-      });
-    </script>
   </body>
 </html>
